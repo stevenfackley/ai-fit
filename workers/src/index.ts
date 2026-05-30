@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { bearerAuth } from 'hono/bearer-auth';
+import { verify } from 'hono/jwt';
 import { generateRecommendations, RecommendationRequest, RecommendationResult } from './recommendation';
 import providers from './providers.json';
 
@@ -13,13 +13,18 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors({ origin: '*' }));
 
-// Verify Supabase JWT (simplified — in production use a proper JWT verify library)
+// Verify the Supabase-issued JWT signature (HS256 via the project's JWT secret).
 app.use('/recommend', async (c, next) => {
   const auth = c.req.header('Authorization');
   if (!auth || !auth.startsWith('Bearer ')) {
     return c.json({ error: 'UNAUTHORIZED', message: 'Missing Bearer token' }, 401);
   }
-  // TODO: verify JWT signature with SUPABASE_JWT_SECRET
+  const token = auth.slice('Bearer '.length).trim();
+  try {
+    await verify(token, c.env.SUPABASE_JWT_SECRET, 'HS256');
+  } catch {
+    return c.json({ error: 'UNAUTHORIZED', message: 'Invalid or expired token' }, 401);
+  }
   await next();
 });
 

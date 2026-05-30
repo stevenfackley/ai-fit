@@ -8,7 +8,3 @@ ENVIRONMENT = "production"
 # Secrets (set via wrangler secret put):
 # OPENAI_API_KEY
 # SUPABASE_JWT_SECRET
-
-[[kv_namespaces]]
-binding = "AI_FIT_KV"
-id = "your-kv-namespace-id"
