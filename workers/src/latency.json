@@ -1,0 +1,11 @@
+{
+  "openai": {
+    "us-east-1": { "avgLatencyMs": 320 },
+    "us-west-2": { "avgLatencyMs": 410 },
+    "eu-west-1": { "avgLatencyMs": 380 }
+  },
+  "anthropic": {
+    "us-east-1": { "avgLatencyMs": 350 },
+    "us-west-2": { "avgLatencyMs": 450 }
+  }
+}
