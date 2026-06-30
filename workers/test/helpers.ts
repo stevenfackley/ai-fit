@@ -63,9 +63,14 @@ export async function mintToken(privateKey: CryptoKey, opts: MintOptions = {}): 
 export function tamperSignature(token: string): string {
   const parts = token.split('.');
   const sig = parts[2];
-  const last = sig.at(-1);
-  // base64url alphabet — swap the final char for a different valid one.
-  const swapped = last === 'A' ? 'B' : 'A';
-  parts[2] = sig.slice(0, -1) + swapped;
+  // Corrupt the FIRST char of the signature, not the last. A 64-byte ES256
+  // signature encodes to 86 base64url chars whose final char carries only 2
+  // significant bits — its low 4 bits are padding that is discarded on decode —
+  // so flipping the last char is frequently a no-op that decodes to the SAME
+  // signature (a ~25% flake that accepted "tampered" tokens). The first char's
+  // 6 bits are all significant, so changing it always corrupts the signature.
+  const first = sig[0];
+  const swapped = first === 'A' ? 'B' : 'A';
+  parts[2] = swapped + sig.slice(1);
   return parts.join('.');
 }
