@@ -4,7 +4,14 @@ compatibility_date = "2024-07-01"
 
 [vars]
 ENVIRONMENT = "production"
+# Public Supabase project URL. Used to discover the ES256 JWKS
+# ({url}/auth/v1/.well-known/jwks.json) and the expected token issuer
+# ({url}/auth/v1). Not a secret. Set the real project URL before deploy, or
+# override the derived values via SUPABASE_JWKS_URL / SUPABASE_JWT_ISSUER.
+SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co"
 
 # Secrets (set via wrangler secret put):
 # OPENAI_API_KEY
-# SUPABASE_JWT_SECRET
+#
+# NOTE: SUPABASE_JWT_SECRET is no longer used. Supabase signs tokens with ES256
+# (asymmetric); verification uses the public JWKS, not a shared secret.

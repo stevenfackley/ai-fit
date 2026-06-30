@@ -1,19 +1,27 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { verify } from 'hono/jwt';
+import type { JWTPayload } from 'jose';
 import { generateRecommendations, RecommendationRequest, RecommendationResult } from './recommendation';
+import { supabaseJwtConfigFromEnv, verifySupabaseJwt } from './auth';
 import providers from './providers.json';
 
 interface Env {
   OPENAI_API_KEY: string;
-  SUPABASE_JWT_SECRET: string;
+  // Public Supabase project URL — used to discover the ES256 JWKS and token issuer.
+  SUPABASE_URL: string;
+  // Optional overrides (normally all derived from SUPABASE_URL).
+  SUPABASE_JWKS_URL?: string;
+  SUPABASE_JWT_ISSUER?: string;
+  SUPABASE_JWT_AUDIENCE?: string;
 }
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: JWTPayload } }>();
 
 app.use('*', cors({ origin: '*' }));
 
-// Verify the Supabase-issued JWT signature (HS256 via the project's JWT secret).
+// Verify the Supabase-issued JWT using ES256 + the project's public JWKS (no
+// shared secret). Signature, issuer, audience ("authenticated") and expiry are
+// all validated. Anything missing/invalid/expired fails closed with a 401.
 app.use('/recommend', async (c, next) => {
   const auth = c.req.header('Authorization');
   if (!auth || !auth.startsWith('Bearer ')) {
@@ -21,7 +29,9 @@ app.use('/recommend', async (c, next) => {
   }
   const token = auth.slice('Bearer '.length).trim();
   try {
-    await verify(token, c.env.SUPABASE_JWT_SECRET, 'HS256');
+    const config = supabaseJwtConfigFromEnv(c.env);
+    const payload = await verifySupabaseJwt(token, config);
+    c.set('jwtPayload', payload);
   } catch {
     return c.json({ error: 'UNAUTHORIZED', message: 'Invalid or expired token' }, 401);
   }
@@ -80,7 +90,7 @@ async function generateSnippet(apiKey: string, provider: string, model: string, 
       return `// Snippet generation failed (${res.status}). Use ${provider} ${model} docs for sample code.`;
     }
 
-    const data = await res.json();
+    const data = await res.json<{ choices?: { message?: { content?: string } }[] }>();
     return data.choices?.[0]?.message?.content?.trim() || '// No snippet generated';
   } catch {
     return `// Could not reach snippet service. Use ${provider} ${model} docs for sample code.`;

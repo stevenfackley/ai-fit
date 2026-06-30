@@ -14,9 +14,23 @@ jobs:
       build-docker: false
     secrets: inherit
 
+  worker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+      - run: npm ci
+        working-directory: ./workers
+      - run: npm test
+        working-directory: ./workers
+
   deploy-worker:
     runs-on: ubuntu-latest
-    needs: ci
+    needs: [ci, worker-test]
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +38,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
       - run: npm ci
         working-directory: ./workers
       - name: Publish Worker

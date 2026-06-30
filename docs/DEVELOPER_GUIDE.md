@@ -44,8 +44,11 @@ wrangler dev          # local dev server
 Add secrets:
 ```bash
 wrangler secret put OPENAI_API_KEY
-wrangler secret put SUPABASE_JWT_SECRET
 ```
+
+Set the public Supabase project URL in `workers/wrangler.toml` (`[vars] SUPABASE_URL`).
+The Worker verifies Supabase JWTs with ES256 against the project's public JWKS
+(`{SUPABASE_URL}/auth/v1/.well-known/jwks.json`) — no shared secret is needed.
 
 ### 4. Environment Variables
 
@@ -107,5 +110,5 @@ The Worker uses OpenAI `gpt-4o-mini` to generate SDK snippets. Ensure `OPENAI_AP
 ## Troubleshooting
 
 - **Metro bundler errors:** Clear cache with `npx expo start -c`
-- **Worker 401:** Verify JWT secret matches Supabase config
+- **Worker 401:** Confirm `SUPABASE_URL` points at the right project so the Worker fetches the correct JWKS; the token must be a current (unexpired) Supabase access token with `aud=authenticated`
 - **Supabase RLS issues:** Check policies in `supabase/migrations/001_initial.sql`
