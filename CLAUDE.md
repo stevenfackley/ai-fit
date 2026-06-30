@@ -23,7 +23,8 @@ npm run deploy  # wrangler deploy → production
 npm test        # vitest
 ```
 
-Secrets (set once via `wrangler secret put`): `OPENAI_API_KEY`, `SUPABASE_JWT_SECRET`.
+Secret (set once via `wrangler secret put`): `OPENAI_API_KEY`.
+Var (in `wrangler.toml`): `SUPABASE_URL` — public project URL used to discover the ES256 JWKS for JWT verification (no shared secret).
 
 ## Path Aliases (tsconfig.json)
 
@@ -69,7 +70,7 @@ Type-safe param lists in `src/navigation/RootNavigator.tsx`.
 
 ## Known TODOs in code
 
-- `workers/src/index.ts`: JWT signature is **not** verified — only checks `Bearer` prefix. Must implement before production.
+- ~~`workers/src/index.ts`: JWT signature is **not** verified.~~ Done — `workers/src/auth.ts` verifies the Supabase JWT with **ES256** against the project JWKS (`createRemoteJWKSet`), validating iss/aud=`authenticated`/exp; fails closed (401).
 - `src/utils/api.ts`: Supabase JWT is **not** attached to requests (commented out `TODO`).
 
 ## CI/CD
