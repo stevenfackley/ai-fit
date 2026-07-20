@@ -55,6 +55,8 @@ export default function OverviewStep() {
               autoCompleteType="off"
               h="40"
               accessibilityLabel="Project description"
+              tvParallaxProperties={undefined}
+              onTextInput={undefined}
             />
           )}
         />
