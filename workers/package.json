@@ -14,14 +14,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240701.0",
     "typescript": "~5.3.0",
-    "vitest": "~3.2.6",
+    "vitest": "^3.2.7",
     "wrangler": "^3.65.0"
-  },
-  "overrides": {
-    "ws@8": "^8.21.0",
-    "esbuild@0": "^0.25.0",
-    "brace-expansion@1": "^1.1.16",
-    "brace-expansion@2": "^2.1.2",
-    "brace-expansion@5": "^5.0.7"
   }
 }
