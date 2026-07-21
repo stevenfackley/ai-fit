@@ -12,4 +12,16 @@ export default defineConfig({
     // network with `vi.stubGlobal('fetch', ...)` instead of hitting node:https.
     conditions: ['workerd', 'worker', 'browser'],
   },
+  ssr: {
+    // Vitest runs test files through Vite's SSR module graph, which resolves
+    // package `exports` using `ssr.resolve.conditions` — NOT the top-level
+    // `resolve.conditions` above (that one only governs client/browser
+    // resolution). Without this, `jose` falls back to its `node` condition
+    // (node:https) even though `resolve.conditions` requests the
+    // worker/browser build, and the JWKS fetch mock never intercepts the
+    // real DNS lookup, so verification throws and the request 401s.
+    resolve: {
+      conditions: ['workerd', 'worker', 'browser'],
+    },
+  },
 });
